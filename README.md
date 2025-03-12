@@ -166,5 +166,5 @@ This project is open-source and can be modified or distributed as per your needs
 
 ## Author
 
-This project was developed by [Your Name] as part of an Oracle database automation project.
+This project was developed by Edison Ford as part of an Oracle database automation project.
 
