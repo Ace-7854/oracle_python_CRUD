@@ -2,7 +2,7 @@
 This file is purely for demonstration as to how the two other files can work together
 """
 from oracle_module import oracle
-from table_cls import database
+from table_cls import database, new_database
 
 def define_all_objects():
     cd = database("cd_tbl", id="cd_id",title="cd_title", release_date= "cd_release_date") #title becomes field["title"] = "cd_title"
@@ -18,32 +18,31 @@ def define_all_objects():
     musician_song = database("musician_song_lnk", musician_id="fk_musician_id", song_id="fk_song_id")
     musician_track = database("musician_track_lnk", musician_id="fk_musician_id", track_id="fk_track_id")
     song_track = database("song_track_lnk", song_id="fk_song_id", track_id="fk_track_id")
+    spices = database("spice_tbl", id="id", name="name", scoval="scoval")
 
     return [cd, artist, genre, musician, song, track, artist_track, cd_track, genre_track, musician_artist, musician_song, musician_track, song_track]
+
+def make_new_table():
+    pass
 
 def display_all_tables(lst):
     for table in lst:
         print(f"{table.table_name} with fields {table.fields}")
 
-def find_table_fields(lst):
+def find_tbl_frm_lst(lst, looking_for):
     for table in lst:
-        if table.table_name == "song_tbl":
-            print(table.fields)
+        if table.table_name == looking_for:
+            return table
 
 def main():
-    oracle_conn = oracle()
-    #oracle_conn.get_data(table=cd.table_name)
-
-    lst_of_tables = define_all_objects()
-
-    #display_all_tables(lst_of_tables)
-
-    find_table_fields(lst_of_tables)
-
-
-
+    oracle_conn = oracle() ##OPENS CONNECTION
     
+    lst_of_tbls = define_all_objects()
+    temp = find_tbl_frm_lst(lst_of_tbls,"song_tbl")
+    rec = oracle_conn.get_record(temp.table_name, temp.fields["id"], "S13")
+    print(rec)
 
+    oracle_conn.close_connection() #CLOSES THE CONNECTION
 
 if __name__ == "__main__":
     main()
