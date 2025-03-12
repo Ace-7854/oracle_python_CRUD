@@ -8,7 +8,7 @@ class oracle:
             "user": "<username>",
             "password": "",
             "host_name": "<hostname>",
-            "port": "1968",
+            "port": "<port>",
             "service_name": "<service_name>"
         }
         connection["password"] = getpass.getpass("Enter the password: ")
