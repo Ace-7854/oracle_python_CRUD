@@ -5,11 +5,11 @@ class oracle:
     def __init__(self):
         # Establish connection once during initialization
         connection = {
-            "user": "<username>",
+            "user": "s5718375",
             "password": "",
-            "host_name": "<hostname>",
-            "port": "<port>",
-            "service_name": "<service_name>"
+            "host_name": "foston.bournemouth.ac.uk",
+            "port": "1968",
+            "service_name": "student_accts.bournemouth.ac.uk"
         }
         connection["password"] = getpass.getpass("Enter the password: ")
         conn_str = f'{connection["user"]}/{connection["password"]}@{connection["host_name"]}:{connection["port"]}/{connection["service_name"]}'
@@ -52,6 +52,19 @@ class oracle:
         except Exception as e:
             print(f"❌ Error in DELETE: {e}")
             self.__conn.rollback()  # Rollback if error occurs
+        finally:
+            cursor.close()
+    
+    def empty_data(self, table):
+        query = f"DELETE FROM {table.table_name}"
+        cursor = self.__conn.cursor()
+
+        try:
+            cursor.execute(query)
+            self.__conn.commit()
+        except Exception as e:
+            print(f"❌ Error in DELETE: {e}")
+            self.__conn.rollback()
         finally:
             cursor.close()
 
@@ -125,3 +138,51 @@ class oracle:
         if self.__conn:
             self.__conn.close()
             print("❌ Database connection closed.")
+
+    def create_lnk_tbl():
+        pass
+
+    def get_all_tables(self):
+        query = """
+        SELECT table_name FROM user_tables
+        """
+        cursor = self.__conn.cursor()
+        tables = []
+        try:
+            cursor.execute(query)
+            tables = [row[0] for row in cursor.fetchall()]  # Get table names
+        except Exception as e:
+            print(f"❌ Error retrieving tables: {e}")
+        finally:
+            cursor.close()
+        return tables
+
+    def get_table_fields(self, table_name):
+        query = f"""
+        SELECT column_name, data_type 
+        FROM user_tab_columns 
+        WHERE table_name = UPPER('{table_name}')
+        """
+        cursor = self.__conn.cursor()
+        fields = {}
+        try:
+            cursor.execute(query)
+            for column, dtype in cursor.fetchall():
+                fields[column.lower()] = column  # Store as {python_field: sql_field}
+        except Exception as e:
+            print(f"❌ Error retrieving fields for {table_name}: {e}")
+        finally:
+            cursor.close()
+        return fields
+
+    def drop_tbl(self, table_name):
+        query = f"DROP TABLE {table_name}"
+        cursor = self.__conn.cursor()
+        try:
+            cursor.execute(query)
+            self.__conn.commit()
+            print(f"✅ Successfully dropped {table_name}")
+        except Exception as e:
+            print(f"❌ Error dropping table {table_name}: {e}")
+        finally:
+            cursor.close()
