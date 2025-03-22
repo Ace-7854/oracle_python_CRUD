@@ -42,7 +42,6 @@ class oracle:
         finally: 
             return temp
 
-
     def delete_record(self, table, field, cond):
         query = f"DELETE FROM {table} WHERE {field} = '{cond}'"
         cursor = self.__conn.cursor()
@@ -90,7 +89,7 @@ class oracle:
     
         # Remove last comma and add closing parenthesis
         ddl_create = ddl_create.rstrip(', ') + ")"
-        print(ddl_create)
+        #print(ddl_create)
         cursor = self.__conn.cursor()
         try:
             cursor.execute(ddl_create)
@@ -139,8 +138,33 @@ class oracle:
             self.__conn.close()
             print("❌ Database connection closed.")
 
-    def create_lnk_tbl():
-        pass
+    def create_lnk_tbl(self, name, fields):
+        query = self.__create_lnk_tbl_query(name, fields)
+        cursor = self.__conn.cursor()
+
+        try:
+            cursor.execute(query)
+            print(f"✅ Link table created successfully")
+        except Exception as e:
+            print(f"❌ Error failed to create link table")
+        finally:
+            cursor.close()
+    
+    def __create_lnk_tbl_query(self, name, fields):
+        query = f"CREATE TABLE {name} (\n"
+        pk_assign = "PRIMARY KEY ("
+        fk_constraints = []
+
+        for i, (field, ref_table) in enumerate(fields.items()):
+            query += f"    {field} INTEGER,\n"
+            pk_assign += f"{field}, " if i < len(fields) - 1 else f"{field})"
+
+            fk_constraints.append(f"    FOREIGN KEY ({field}) REFERENCES {ref_table}({field})")
+
+            query += f"    {pk_assign},\n"
+            query += ",\n".join(fk_constraints) + "\n);"
+
+            return query
 
     def get_all_tables(self):
         query = """
@@ -186,3 +210,40 @@ class oracle:
             print(f"❌ Error dropping table {table_name}: {e}")
         finally:
             cursor.close()
+    
+    def update_record(self, tbl, update_flds, values, condition_field, cond_val):
+        query = f"UPDATE {tbl.table_name} SET "
+
+        if len(update_flds) > len(values):
+            raise "More fields than values found"
+        elif len(update_flds) < len(values): 
+            raise "More values than fields found"
+        else: 
+            for i in range(len(update_flds)):
+                query += f"{update_flds[i]} = {values[i]},"
+            
+            query = query.rstrip(',') + f"WHERE {condition_field} = {cond_val};"
+
+            cursor = self.__conn.cursor()
+            try:
+                cursor.execute()
+                self.__conn.commit()
+                print(f"✅Record successfully updated using values: {values}")
+            except Exception as e: 
+                print(f"❌Failed to update record successfully: {e}")
+            finally: 
+                cursor.close()
+
+        
+#already made tables
+class table:
+    def __init__(self, table, **kwargs):
+        self.table_name = table 
+        ## making a dictionary based on input fields
+        self.fields = dict(kwargs)
+
+#a new table un-made, provides a way of setting up constraints and making the table itself in python
+class new_table:
+    def __init__(self, tbl_name, **kwargs):
+        self.table_name = tbl_name
+        self.fields = dict(kwargs)

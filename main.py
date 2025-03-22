@@ -1,8 +1,7 @@
 """
 This file is purely for demonstration as to how the two other files can work together
 """
-from oracle_module import oracle
-from table_cls import table, new_table
+from oracle_module import oracle, table, new_table
 
 def define_all_objects(oracle_conn):
     tables = oracle_conn.get_all_tables()
@@ -45,13 +44,18 @@ def display_all_data(lst_of_data, lst_table):
 def drop_all_tbls(tbls, oracle_conn):     
     while len(tbls) != 0:
         for table in tbls:
-            oracle_conn.drop_tbl(table.table_name)
+            if oracle_conn.drop_tbl(table.table_name):
+                tbls.remove(table)
 
 
 def main():
     oracle_conn = oracle() ##OPENS CONNECTION
 
     tbls = define_all_objects(oracle_conn)
+
+    for table in tbls: 
+        #print(f"{table.table_name} with fields {table.fields}")
+        print(f"{oracle_conn.get_data(table.table_name)}")
     
     oracle_conn.close_connection() #CLOSES THE CONNECTION
 
