@@ -1,170 +1,111 @@
-# Oracle Python CRUD
+# Oracle Python CRUD Automation
 
-## Overview
+This project automates CRUD (Create, Read, Update, Delete) operations in an **Oracle Database** using Python. It dynamically retrieves table structures, generates link tables, and performs operations efficiently without manual table definitions.
 
-This project provides a Python-based solution for automating the creation and management of Oracle databases. It comprises three main components:
+## Features 🚀
+- **Dynamic Table Detection**: Automatically fetches all tables and fields from the database.
+- **Automated Link Table Creation**: Generates intermediary tables for many-to-many relationships.
+- **CRUD Operations**: Supports inserting, updating, deleting, and retrieving records.
+- **Database Management**: Functions for dropping tables and clearing data.
+- **Optimized Queries**: Uses parameterized SQL to prevent SQL injection.
 
-- **`oracle_module.py`**: Handles Oracle database operations such as creating tables, inserting records, retrieving data, and deleting records.
-- **`table_cls.py`** classes to represent and dynamically create database tables.
-- **`main.py`**: Demonstrates how the `oracle_module` and `table_cls` work together.
+---
 
-This setup is ideal for developers who need to create and populate Oracle databases without writing raw SQL scripts, especially useful in software projects requiring rapid database prototyping.
+## Installation & Setup ⚙️
+1. **Install Dependencies**
+   ```bash
+   pip install oracledb
+   ```
+2. **Ensure Oracle Database Connection**
+   - Update `oracle_module.py` with your **Oracle connection details**.
+   - The script will prompt for a password at runtime.
 
-## File Structure
+---
 
-### 1. oracle\_module.py
-
-This file contains the `oracle` class responsible for interacting with an Oracle database.
-
-#### Key Features
-
-- **Open and Close Connection**: Opens a connection upon instantiation and closes it when `close_connection()` is called.
-- **Data Retrieval**:
-  - `get_data(table)` - Retrieves all records from a table.
-  - `get_record(table, field, cond)` - Retrieves a specific record from a table based on a condition.
-- **Data Manipulation**:
-  - `insert_rec(table, values)` - Inserts a new record into a table.
-  - `delete_record(table, field, cond)` - Deletes a record from a table.
-- **Table Creation**:
-  - `create_table(table)` - Dynamically generates a DDL (Data Definition Language) statement to create a table.
-
-#### Example Usage
-
+## Usage 🛠️
+### **1. Establish a Connection**
 ```python
 from oracle_module import oracle
-from table_cls import database
 
-# Instantiate Oracle connection
-oracle_conn = oracle()
-
-# Define a table
-song_table = database("song_tbl", id="song_id", title="song_title")
-
-# Insert a record
-oracle_conn.insert_rec(song_table, ["S13", "Song Name"])
-
-# Retrieve the inserted record
-record = oracle_conn.get_record(song_table.table_name, song_table.fields["id"], "S13")
-print(record)
-
-# Close the connection
-oracle_conn.close_connection()
+oracle_conn = oracle()  # Opens database connection
 ```
 
-This example shows a complete flow of inserting and retrieving a record, showcasing how the `oracle_module` works in practice.
-
----
-
-### 2. table\_cls.py
-
-This file contains two classes:
-
-#### **database** class
-
-- Represents an existing table structure.
-- Takes dynamic parameters as fields and stores them in a dictionary.
-- Example:
-
+### **2. Retrieve All Tables**
 ```python
-song = database("song_tbl", id="song_id", title="song_title")
-print(song.fields)
-# Output: {'id': 'song_id', 'title': 'song_title'}
+tables = oracle_conn.get_all_tables()
+print(tables)  # List of all table names
 ```
 
-#### **new\_database** class
-
-- Represents a new table not yet created.
-- Accepts fields and their constraints as parameters.
-- Example:
-
+### **3. Fetch Table Fields**
 ```python
-from oracle_module import oracle
-from table_cls import new_database
-
-# Instantiate Oracle connection
-oracle_conn = oracle()
-
-# Define a new table with constraints
-new_song_table = new_database("new_song_tbl", 
-                              id="VARCHAR2(10)", 
-                              title="VARCHAR2(50)", 
-                              release_date="DATE", 
-                              length="NUMBER")
-
-# Create the table in Oracle
-oracle_conn.create_table(new_song_table)
-
-# Close the connection
-oracle_conn.close_connection()
+table_name = "employees"
+fields = oracle_conn.get_table_fields(table_name)
+print(fields)  # Dictionary of field names and data types
 ```
 
-This approach allows rapid prototyping of new tables by simply defining fields and their constraints without manually writing SQL.
-
----
-
-### 3. main.py
-
-This file demonstrates how both `oracle_module` and `table_cls` work together.
-
-#### Example Flow
-
-1. Define your tables using `database` class.
-2. Instantiate an Oracle connection.
-3. Retrieve data, insert records, or create tables using the Oracle connection.
-4. Close the connection once done.
-
-#### Code Example
-
+### **4. Insert a Record**
 ```python
-oracle_conn = oracle()
-lst_of_tbls = define_all_objects()
-temp = find_tbl_frm_lst(lst_of_tbls,"song_tbl")
-rec = oracle_conn.get_record(temp.table_name, temp.fields["id"], "S13")
-print(rec)
+values = (101, "John Doe", "Software Engineer", 70000)
+oracle_conn.insert_rec("employees", values)
+```
+
+### **5. Update a Record**
+```python
+oracle_conn.update_record(
+    tbl=table("employees"),
+    update_flds=["salary", "job_title"],
+    values=[75000, "Lead Engineer"],
+    condition_field="employee_id",
+    cond_val=101
+)
+```
+
+### **6. Delete a Record**
+```python
+oracle_conn.delete_record("employees", "employee_id", 101)
+```
+
+### **7. Drop a Table**
+```python
+oracle_conn.drop_tbl("old_table")
+```
+
+### **8. Close the Connection**
+```python
 oracle_conn.close_connection()
 ```
 
 ---
 
-## Setup
+## Methods in `oracle_module.py`
 
-### Prerequisites
-
-Ensure you have the `oracledb` library installed:
-
-```shell
-pip install oracledb
-```
-
-### Oracle Database Connection
-
-Update the `oracle_module.py` file with your database credentials:
-
-```python
-connection = {
-    "user": "your_username",
-    "password": "your_password",
-    "host_name": "your_host",
-    "port": "your_port",
-    "service_name": "your_service"
-}
-```
-
-The script will prompt for your password during runtime.
+| Method | Parameters | Description |
+|--------|-----------|-------------|
+| `get_all_tables()` | None | Retrieves all table names from Oracle. |
+| `get_table_fields(table_name)` | `table_name` (str) | Returns a dictionary of field names and data types. |
+| `get_data(table)` | `table` (str) | Retrieves all records from a given table. |
+| `get_record(table, field, cond)` | `table` (str), `field` (str), `cond` (value) | Fetches a specific record based on a condition. |
+| `insert_rec(table, values)` | `table` (str), `values` (tuple) | Inserts a new record into a table. |
+| `update_record(tbl, update_flds, values, condition_field, cond_val)` | `tbl` (table object), `update_flds` (list), `values` (list), `condition_field` (str), `cond_val` (value) | Updates records dynamically based on a condition. |
+| `delete_record(table, field, cond)` | `table` (str), `field` (str), `cond` (value) | Deletes a record matching the condition. |
+| `empty_data(table)` | `table` (table object) | Removes all records from a table. |
+| `drop_tbl(table_name)` | `table_name` (str) | Drops (deletes) a table from the database. |
+| `create_table(table)` | `table` (table object) | Creates a new table in the database. |
+| `create_lnk_tbl(name, fields)` | `name` (str), `fields` (dict) | Creates a dynamic link table for many-to-many relationships. |
+| `close_connection()` | None | Closes the database connection. |
 
 ---
 
-## Future Improvements
+## Contributing 🤝
+Feel free to contribute by improving automation, optimizing queries, or adding new functionality.
 
-- Add an `update_record()` method to modify existing records.
-- Extend the `get_record()` method to support comparison operators like `>`, `<`, and `!=`.
-- Introduce a table relationship builder for foreign key constraints.
+---
 
-## License
+## License 📜
+This project is licensed under the MIT License.
 
-This project is open-source and can be modified or distributed as per your needs.
+---
 
 ## Author
-
-This project was developed by Edison Ford as part of an Oracle database automation project.
+👨‍💻 Developed by **Edison Ford** | Back-end Developer & Database Enthusiast.
 
