@@ -17,7 +17,6 @@ def make_new_table():
     pass
 
 def define_link_tbls(lst):
-    #refer to chatgpt for general concept
     pass
 
 def display_all_tables(lst):
