@@ -1,5 +1,5 @@
 """
-This file is purely for demonstration as to how the two other files can work together
+This file is purely for demonstration as to how the other file can work
 """
 from oracle_module import oracle, table, new_table
 
